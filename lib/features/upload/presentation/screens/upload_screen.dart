@@ -16,6 +16,9 @@ class _UploadScreenState extends State<UploadScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
 
+  final AIRepository _aiRepository = AIRepository();
+  Map<String, dynamic>? _predictionResult; // Pour stocker la réponse de l'API
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(source: source);
@@ -35,39 +38,39 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   Future<void> _uploadAndGenerate() async {
-    if (_selectedImage == null || widget.selectedStyle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an image first'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isUploading = true);
-    
-    // TODO: Implement actual upload to FastAPI backend
-    // 1. Upload image
-    // 2. Send selected style
-    // 3. Wait for AI generation
-    // 4. Navigate to result screen
-    
-    await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-    
-    setState(() => _isUploading = false);
-    
-    // For now, show success message
+  if (_selectedImage == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('AI is generating your design...'),
-        backgroundColor: Colors.green.shade600,
+      const SnackBar(
+        content: Text('Please select an image first'),
+        backgroundColor: Colors.red,
       ),
     );
-    
-    // TODO: Navigate to result screen
-    // Navigator.pushNamed(context, '/result');
+    return;
   }
+
+  setState(() {
+    _isUploading = true;
+    _predictionResult = null;
+  });
+
+  try {
+    final result = await _aiRepository.classify(_selectedImage!);
+
+    setState(() {
+      _predictionResult = result; // Exemple: {"class":"bedroom","confidence":0.92}
+      _isUploading = false;
+    });
+  } catch (e) {
+    setState(() => _isUploading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +185,7 @@ class _UploadScreenState extends State<UploadScreen> {
               _buildUploadOptions()
             else
               _buildImagePreview(),
+
             
             const SizedBox(height: 40),
             
