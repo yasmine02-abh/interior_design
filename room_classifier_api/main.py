@@ -15,7 +15,7 @@ MODEL_PATH = os.path.join("model", "room_classifier.keras")
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Replace with your real class names in correct order
-CLASS_NAMES = ["bedroom", "kitchen", "living_room", "bathroom", "office"]
+CLASS_NAMES = ["bathroom", "bedroom", "office", "kitchen", "living room"]
 
 IMG_SIZE = 224  # EfficientNetB0 default input size
 
